@@ -1,0 +1,25 @@
+name: Simple Deploy
+
+on:
+  workflow_dispatch
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Pretend to build the app
+      run: |
+        echo "Building app"
+        sleep 2 
+        echo "Build complete"
+
+    - name: Pretend to deploy
+      run: |
+        echo "Deploying app to TARGET"
+        sleep 2
+        echo "Deployed!"
+        
+    
