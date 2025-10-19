@@ -1,0 +1,40 @@
+name: Deploy (with input & secret)
+
+# Manual trigger with a drop-down for environment
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Where do you want to deploy?"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build app
+        run: |
+          echo "🧱 Building app for ${{ inputs.environment }}..."
+          sleep 2
+          echo "✅ Build complete!"
+
+      - name: Fake deploy using secret
+        env:
+          FORGE_AUTH_TOKEN: ${{ secrets.FAKE_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$FORGE_AUTH_TOKEN" ]; then
+            echo "❌ Missing secret! Please add FAKE_DEPLOY_TOKEN under repo Settings > Secrets > Actions."
+            exit 1
+          fi
+          echo "🚀 Using token $FORGE_AUTH_TOKEN to deploy to ${{ inputs.environment }}..."
+          sleep 2
+          echo "✅ Finished deploying to ${{ inputs.environment }}"
