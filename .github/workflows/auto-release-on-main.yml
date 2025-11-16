@@ -1,0 +1,78 @@
+name: Auto release on main (with dummy deploy)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  auto-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # needed to push tags & create releases
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # we need tag history
+
+      # ---------- VERSION CALCULATION ----------
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          # Get the latest tag, or default to v0.0.0 if none exist yet
+          tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Current tag: $tag"
+          echo "current_tag=$tag" >> $GITHUB_OUTPUT
+
+      - name: Bump patch version
+        id: bump_version
+        run: |
+          current="${{ steps.get_tag.outputs.current_tag }}"
+          ver="${current#v}"  # strip leading v if present
+
+          IFS='.' read -r major minor patch <<< "$ver"
+
+          # Always bump PATCH automatically
+          patch=$((patch + 1))
+
+          new_tag="v${major}.${minor}.${patch}"
+
+          echo "Bumping $current -> $new_tag"
+          echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
+
+      # ---------- CREATE TAG ----------
+
+      - name: Create and push tag
+        run: |
+          new_tag="${{ steps.bump_version.outputs.new_tag }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "$new_tag" -m "Release $new_tag"
+          git push origin "$new_tag"
+
+      # ---------- CREATE GITHUB RELEASE (using gh) ----------
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          new_tag="${{ steps.bump_version.outputs.new_tag }}"
+
+          gh release create "$new_tag" \
+            --title "Release $new_tag" \
+            --notes "Automated release for $new_tag (from push to main)"
+
+      # ---------- DUMMY DEPLOY STEP ----------
+
+      - name: Dummy deploy
+        run: |
+          echo "✅ Dummy deploy step running..."
+          echo "If this were real, we would deploy version: ${{ steps.bump_version.outputs.new_tag }}"
+          echo "Commit being released:"
+          git rev-parse HEAD
