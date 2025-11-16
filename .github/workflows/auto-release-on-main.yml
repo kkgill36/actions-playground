@@ -68,11 +68,4 @@ jobs:
             --title "Release $new_tag" \
             --notes "Automated release for $new_tag (from push to main)"
 
-      # ---------- DUMMY DEPLOY STEP ----------
-
-      - name: Dummy deploy
-        run: |
-          echo "✅ Dummy deploy step running..."
-          echo "If this were real, we would deploy version: ${{ steps.bump_version.outputs.new_tag }}"
-          echo "Commit being released:"
-          git rev-parse HEAD
+    
