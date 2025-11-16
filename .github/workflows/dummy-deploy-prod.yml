@@ -2,11 +2,7 @@ name: Dummy Deploy to Prod
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Tag/version to deploy (e.g. v1.2.3)'
-        required: true
-        type: string
+
 
 jobs:
   dummy-deploy-prod:
