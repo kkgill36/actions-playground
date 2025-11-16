@@ -1,0 +1,29 @@
+name: Dummy Deploy to Prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag/version to deploy (e.g. v1.2.3)'
+        required: true
+        type: string
+
+jobs:
+  dummy-deploy-prod:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout selected version
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Show what would be deployed
+        run: |
+          echo "🚀 Dummy deploy starting..."
+          echo "Requested version: ${{ github.event.inputs.version }}"
+          echo
+          echo "Current commit for this version:"
+          git rev-parse HEAD
+          echo
+          echo "✅ If this were the real workflow, we'd deploy version '${{ github.event.inputs.version }}' to prod here."
